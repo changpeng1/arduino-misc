@@ -16,7 +16,7 @@
 MagneticSensorI2C sensor = MagneticSensorI2C(AS5600_I2C);
 
 // MagneticSensorSPI sensor = MagneticSensorSPI(AS5047_SPI, PA4);
-
+TwoWire Wire1(PB11, PB10);
 void setup() {
   // monitoring port
   Serial.begin(115200);
@@ -25,7 +25,7 @@ void setup() {
   // configure i2C
   // Wire.setClock(400000);
   // initialise magnetic sensor hardware
-  sensor.init();
+  sensor.init(&Wire1);
 
   Serial.println("Sensor ready");
   _delay(1000);

@@ -15,12 +15,12 @@
 MagneticSensorI2C sensor = MagneticSensorI2C(AS5600_I2C);
 // magnetic sensor instance - analog output
 // MagneticSensorAnalog sensor = MagneticSensorAnalog(A1, 14, 1020);
-
+TwoWire Wire1(PB11, PB10);
 // BLDC motor & driver instance
-BLDCMotor motor = BLDCMotor(7);//7,11
-BLDCDriver3PWM driver = BLDCDriver3PWM(PA0, PA6, PA7);
+BLDCMotor motor = BLDCMotor(11);//7,11
+BLDCDriver3PWM driver = BLDCDriver3PWM(PA0, PA1, PA2);
 // DRV8301 gate_driver = DRV8301(MOSI, MISO, SCLK, CS, EN_GATE, FAULT);
-DRV8301 gate_driver = DRV8301(PA11, PA12, PA15, PB3, PB4, PB5);
+DRV8301 gate_driver = DRV8301(PB5, PA6, PA5, PA4, PA3, PE9);
 
 // Stepper motor & driver instance
 //StepperMotor motor = StepperMotor(50);
@@ -35,7 +35,7 @@ void doTarget(char* cmd) { command.scalar(&target_angle, cmd); }
 void setup() {
 
   // initialise magnetic sensor hardware
-  sensor.init();
+  sensor.init(&Wire1);
   // link the motor to the sensor
   motor.linkSensor(&sensor);
 
