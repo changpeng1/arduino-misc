@@ -1,4 +1,6 @@
 void serialEvent() {
+  if(!use_simple_command)
+  {
   while (Serial.available()) {
     // get the new byte:
     unsigned char data = Serial.read();
@@ -58,6 +60,7 @@ void serialEvent() {
         check_sum = check_sum ^ data;
       }
     }
+  }
   }
 }
 void calculate_enc() {

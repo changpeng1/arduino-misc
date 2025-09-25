@@ -54,4 +54,6 @@ double right_Setpoint2, right_Input2, right_Output2;
 //double Kp=4, Ki=5, Kd=0.1;
 //double Kp=2, Ki=5, Kd=1;
 double Kp=1, Ki=5, Kd=0.1;//kd不动 kp变大会震荡
+float wheel_diameter = 0.085;//0.067;//0.085
+float radio = 56.0;
 #endif

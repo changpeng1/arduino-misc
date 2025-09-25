@@ -3,10 +3,11 @@
 #include <DRV8301.h>
 
 // Motor instance
-BLDCMotor motor = BLDCMotor(11);//7/11/21
+BLDCMotor motor = BLDCMotor(7);//7/11/21
 BLDCDriver3PWM driver = BLDCDriver3PWM(PA0, PA1, PA2);
 // DRV8301 gate_driver = DRV8301(MOSI, MISO, SCLK, CS, EN_GATE, FAULT);
-DRV8301 gate_driver = DRV8301(PB5, PA6, PA5, PA4, PA3, PE9);
+// DRV8301 gate_driver = DRV8301(PB5, PA6, PA5, PA4, PA3, PE9);
+DRV8301 gate_driver = DRV8301(PB15, PB14, PB13, PD8, PB11, PB10);
 
 void setup()
 {

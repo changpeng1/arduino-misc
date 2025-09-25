@@ -58,11 +58,11 @@ void setup() {
   // default parameters in defaults.h
 
   // velocity PI controller parameters
-  motor.PID_velocity.P = 0.02f;//调节此参数，减少震荡
+  motor.PID_velocity.P = 0.1;//调节此参数，减少震荡
   motor.PID_velocity.I = 2;//调节此参数，减少震荡
   motor.PID_velocity.D = 0;
   // maximal voltage to be set to the motor
-  motor.voltage_limit = 3; //xxd:0.2,2804:3
+  motor.voltage_limit = 6; //xxd:0.2,2804:3
 
   // velocity low pass filtering time constant
   // the lower the less filtered
@@ -70,8 +70,8 @@ void setup() {
 
   // angle P controller
   // Kc = 16
-  motor.P_angle.P = 2;
-  motor.P_angle.I = 0.08;
+  motor.P_angle.P = 20;
+  motor.P_angle.I = 2;
   motor.P_angle.D = 0.06;
   // maximal velocity of the position control
   motor.velocity_limit = 10;
@@ -114,7 +114,7 @@ void loop() {
 
   // function intended to be used with serial plotter to monitor motor variables
   // significantly slowing the execution down!!!!
-  motor.monitor();
+  // motor.monitor();
 
   // user communication
   // command.run();

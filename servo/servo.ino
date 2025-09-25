@@ -12,20 +12,31 @@ void setup() {
 int pos=10;
 int pos1 = 10;
 bool revert = false;
+int interval = 20;
 void loop() {
   // put your main code here, to run repeatedly:
   //my_servo.write(90);//50--115
   
      for(pos = 0; pos < 180; pos += 1){    // 舵机从0°转到180°，每次增加1°          
       my_servo.write(pos);           // 给舵机写入角度   
-      delay(15);                    // 延时15ms让舵机转到指定位置
+      my_servo1.write(pos);           // 给舵机写入角度
+      delay(interval);                    // 延时15ms让舵机转到指定位置
    }
-   delay(500);
+  //  for(pos = 0; pos < 180; pos += 1){    // 舵机从0°转到180°，每次增加1°          
+  //     my_servo1.write(pos);           // 给舵机写入角度   
+  //     delay(interval);                    // 延时15ms让舵机转到指定位置
+  //  }
+   delay(100);
     for(pos = 180; pos>=0; pos-=1) {    // 舵机从180°转回到0°，每次减小1°                               
        my_servo.write(pos);        // 写角度到舵机     
-       delay(15);                 // 延时15ms让舵机转到指定位置
+       my_servo1.write(pos);           // 给舵机写入角度
+       delay(interval);                 // 延时15ms让舵机转到指定位置
     } 
-    delay(500);
+    // for(pos = 180; pos>=0; pos-=1) {    // 舵机从180°转回到0°，每次减小1°                               
+    //    my_servo1.write(pos);        // 写角度到舵机     
+    //    delay(interval);                 // 延时15ms让舵机转到指定位置
+    // } 
+    delay(100);
 
   /*
    if (Serial.available() > 0) {  

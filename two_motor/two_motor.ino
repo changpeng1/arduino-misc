@@ -7,6 +7,8 @@
 #include <PID_v1.h>
 bool use_ps2 = false;
 bool use_joystick = false;
+bool use_simple_command = false;
+bool direct_float_value = false;//receive float speed value
 Timer t;
 
 byte type = 0;
@@ -83,27 +85,29 @@ void counter_timeout()//定时器中断处理函数
         else
             test = (kk+aa) /(temp_left1_time );
 
-        //left1_speed = test*3.14*0.067*(1000.0/time_interval)/(56*11.0);//减速比56，转一圈11个脉冲，直径0.067m
+        //left1_speed = test*3.14*0.067*(1000.0/time_interval)/(radio*11.0);//减速比56，转一圈11个脉冲，直径0.067m
         left1_speed = test;
         left_Input1 = left1_speed;
     }
     //right1_speed
     {
         float aa = last_time1- last_right1_time;
-        if(right1_counter == 0 ) test = 0;
+        if(right1_counter == 0 ) test1 = 0;
         else
-            test = (kk+aa) /(temp_right1_time ); 
-        //right1_speed = test*3.14*0.067*(1000.0/time_interval)/(56*11.0);//减速比56，转一圈11个脉冲，直径0.067m
-        right1_speed = test;
+            test1 = (kk+aa) /(temp_right1_time ); 
+        //right1_speed = test*3.14*0.067*(1000.0/time_interval)/(radio*11.0);//减速比56，转一圈11个脉冲，直径0.067m
+        right1_speed = test1;
         right_Input1 = right1_speed;
     }
-    /*
-       Serial.print("left_speed:");
-       Serial.print(left1_speed);
-       Serial.print("right_speed:");
-       Serial.print(right1_speed);
-       Serial.println();
-     */
+        if(use_simple_command)
+        {
+            Serial.print("left_speed:");
+            Serial.print(test*3.14*wheel_diameter*(1000.0/time_interval)/(radio*11.0));
+            Serial.print("right_speed:");
+            Serial.print(test1*3.14*wheel_diameter*(1000.0/time_interval)/(radio*11.0));
+            Serial.println();
+        }
+     
     //report_speed();
 
 
@@ -137,7 +141,7 @@ void right_interrupt()
     temp_right1_time = micros()-last_right1_time;
     last_right1_time = micros();
 }
-
+float target_value = 0.0;
 void setup() {
     // put your setup code here, to run once:
 
@@ -166,9 +170,10 @@ void setup() {
 
     //set_speed(0,50,1,0);
     //Serial.println(micros());
-    //float speed = 0.1;
-      //  int count = (int)(speed*56*11)/(1000/time_interval)/(3.14*0.067);
-        //set_speed(1,count,1,count);
+
+    // float speed = 0.2;
+    //    int count = (int)(speed*56*11)/(1000/time_interval)/(3.14*0.067);
+    //     set_speed(1,count,1,count);
 
     if(use_ps2)
     {
@@ -188,8 +193,14 @@ void loop() {
         {
             recv_buffer[i]=0;
         }
+        // Serial.println(left_Setpoint1);
     }
-
+    if(use_simple_command)
+    {
+        float speed = target_value;
+       int count = (int)(speed*radio*11)/(1000/time_interval)/(3.14*wheel_diameter);
+        set_speed(1,count,1,count);
+    }
     //if(left_Input1-left_Setpoint1 >3 || left_Input1-left_Setpoint1 < -3)
     {
         left_PID1.Compute();
@@ -212,5 +223,29 @@ void loop() {
         process_joystick_command();
         delay(50);
     }
-
+    if(use_simple_command)
+        serialReceiveUserCommand();
+}
+void serialReceiveUserCommand() {
+  
+  // a string to hold incoming data
+  static String received_chars;
+  
+  while (Serial.available()) {
+    // get the new byte:
+    char inChar = (char)Serial.read();
+    // add it to the string buffer:
+    received_chars += inChar;
+    // end of user input
+    if (inChar == '\n') {
+      
+      // change the motor target
+      target_value = received_chars.toFloat();
+      Serial.print("Target velocity: ");
+      Serial.println(target_value);
+      
+      // reset the command buffer 
+      received_chars = "";
+    }
+  }
 }

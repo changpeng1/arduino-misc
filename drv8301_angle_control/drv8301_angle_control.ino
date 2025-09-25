@@ -17,7 +17,7 @@ MagneticSensorI2C sensor = MagneticSensorI2C(AS5600_I2C);
 // MagneticSensorAnalog sensor = MagneticSensorAnalog(A1, 14, 1020);
 TwoWire Wire1(PB11, PB10);
 // BLDC motor & driver instance
-BLDCMotor motor = BLDCMotor(11);//7,11
+BLDCMotor motor = BLDCMotor(11);//7,11,21
 BLDCDriver3PWM driver = BLDCDriver3PWM(PA0, PA1, PA2);
 // DRV8301 gate_driver = DRV8301(MOSI, MISO, SCLK, CS, EN_GATE, FAULT);
 DRV8301 gate_driver = DRV8301(PB5, PA6, PA5, PA4, PA3, PE9);
