@@ -24,6 +24,14 @@ BLDCDriver3PWM driver = BLDCDriver3PWM(PB1,PB0,PA8,PB3);
 //void doMotion(char* cmd){ command.motion(&motor, cmd); }
 // void doMotor(char* cmd){ command.motor(&motor, cmd); }
 
+// MagneticSensorSPI(int cs, float _cpr, int _angle_register)
+// config           - SPI config
+//  cs              - SPI chip select pin 
+MagneticSensorSPI sensor = MagneticSensorSPI(AS5147_SPI, PC13);
+
+// these are valid pins (mosi, miso, sclk) for 2nd SPI bus on storm32 board (stm32f107rc)
+SPIClass SPI_2(PA7, PA6, PA5);
+
 void setup() {
 
   // use monitoring with serial 
@@ -31,12 +39,12 @@ void setup() {
   // enable more verbose output for debugging
   // comment out if not needed
   SimpleFOCDebug::enable(&Serial);
-
+sensor.init(&SPI_2);
   // initialize encoder sensor hardware
   // encoder.init();
   // encoder.enableInterrupts(doA, doB);
   // link the motor to the sensor
-  // motor.linkSensor(&encoder);
+  motor.linkSensor(&sensor);
 
   // driver config
   // power supply voltage [V]
@@ -48,8 +56,8 @@ void setup() {
   // current_sense.linkDriver(&driver);
 
   // set control loop type to be used
-  motor.controller = MotionControlType::velocity_openloop;
-  // motor.torque_controller = TorqueControlType::foc_current;
+  motor.controller = MotionControlType::velocity;
+  motor.torque_controller = TorqueControlType::voltage;
 
   // SVPWM modulation type is much more efficient for hybrid stepper motors
   motor.foc_modulation = FOCModulationType::SpaceVectorPWM;
@@ -60,7 +68,7 @@ void setup() {
   motor.PID_velocity.I = 1;
   motor.PID_velocity.D = 0;
   // default voltage_power_supply
-  motor.voltage_limit = 2;
+  motor.voltage_limit = 5;
 
   // velocity low pass filtering time constant
   motor.LPF_velocity.Tf = 0.01f;
@@ -80,7 +88,7 @@ void setup() {
   // initialise motor
   motor.init();
   // align encoder and start FOC
-  // motor.initFOC();
+  motor.initFOC();
 
   // subscribe motor to the commander
   // command.add('M', doMotor, "motor");
@@ -101,10 +109,11 @@ void loop() {
   // motor.setPhaseVoltage(2.0f, 0, 0);
   // motor.setPhaseVoltage(2.0f, 0, _PI_2);
 
-serialReceiveUserCommand();
+
   // motor monitoring
   // motor.monitor();
 
+serialReceiveUserCommand();
   // user communication
   // command.run();
 }
