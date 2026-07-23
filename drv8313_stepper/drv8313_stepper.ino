@@ -29,8 +29,11 @@ BLDCDriver3PWM driver = BLDCDriver3PWM(PB1,PB0,PA8,PB3);
 //  cs              - SPI chip select pin 
 MagneticSensorSPI sensor = MagneticSensorSPI(AS5147_SPI, PC13);
 
-// these are valid pins (mosi, miso, sclk) for 2nd SPI bus on storm32 board (stm32f107rc)
-SPIClass SPI_2(PA7, PA6, PA5);
+// STM32F103 SPI1 pins: MOSI=PA7, MISO=PA6, SCK=PA5
+SPIClass encoder_spi(PA7, PA6, PA5);
+
+// Print target velocity, measured shaft velocity and accumulated shaft angle.
+constexpr uint32_t MONITOR_INTERVAL_MS = 100;
 
 void setup() {
 
@@ -39,7 +42,14 @@ void setup() {
   // enable more verbose output for debugging
   // comment out if not needed
   SimpleFOCDebug::enable(&Serial);
-sensor.init(&SPI_2);
+
+  // initialize magnetic sensor hardware
+  sensor.init(&encoder_spi);
+  // Reduce velocity quantization noise without slowing the angle updates used by FOC.
+  sensor.min_elapsed_time = 0.002f;
+  Serial.print("Sensor initial angle [rad]: ");
+  Serial.println(sensor.getMechanicalAngle(), 4);
+
   // initialize encoder sensor hardware
   // encoder.init();
   // encoder.enableInterrupts(doA, doB);
@@ -49,7 +59,12 @@ sensor.init(&SPI_2);
   // driver config
   // power supply voltage [V]
   driver.voltage_power_supply = 12;
-  driver.init();
+  if (!driver.init()) {
+    Serial.println("Driver init failed!");
+    while (true) {
+      delay(1000);
+    }
+  }
   // link driver
   motor.linkDriver(&driver);
   // link current sense and the driver
@@ -71,7 +86,7 @@ sensor.init(&SPI_2);
   motor.voltage_limit = 5;
 
   // velocity low pass filtering time constant
-  motor.LPF_velocity.Tf = 0.01f;
+  motor.LPF_velocity.Tf = 0.02f;
 
   // angle loop controller
   motor.P_angle.P = 20;
@@ -80,21 +95,37 @@ sensor.init(&SPI_2);
 
   // comment out if not needed
   motor.useMonitoring(Serial);
+  motor.monitor_variables = _MON_TARGET | _MON_VOLT_Q | _MON_VEL | _MON_ANGLE;
+  // Monitoring is scheduled by time below, so print on every monitor() call.
+  motor.monitor_downsample = 1;
+  motor.monitor_decimals = 4;
 
   // current sense init and linking
   // current_sense.init();
   // motor.linkCurrentSense(&current_sense);
 
   // initialise motor
-  motor.init();
+  if (!motor.init()) {
+    Serial.println("Motor init failed!");
+    while (true) {
+      delay(1000);
+    }
+  }
   // align encoder and start FOC
-  motor.initFOC();
+  if (!motor.initFOC()) {
+    Serial.println("Motor FOC/sensor alignment failed!");
+    motor.disable();
+    while (true) {
+      delay(1000);
+    }
+  }
 
   // subscribe motor to the commander
   // command.add('M', doMotor, "motor");
   
   // Run user commands to configure and the motor (find the full command list in docs.simplefoc.com)
   Serial.println("Motor ready.");
+  Serial.println("monitor: target_velocity[rad/s]\tvoltage_q[V]\tshaft_velocity[rad/s]\tshaft_angle[rad]");
 
   _delay(1000);
 }
@@ -110,10 +141,15 @@ void loop() {
   // motor.setPhaseVoltage(2.0f, 0, _PI_2);
 
 
-  // motor monitoring
-  // motor.monitor();
+  // SimpleFOC monitoring. Keep serial output slow enough not to disturb FOC.
+  static uint32_t last_monitor_ms = 0;
+  const uint32_t now_ms = millis();
+  if (now_ms - last_monitor_ms >= MONITOR_INTERVAL_MS) {
+    last_monitor_ms = now_ms;
+    motor.monitor();
+  }
 
-serialReceiveUserCommand();
+  serialReceiveUserCommand();
   // user communication
   // command.run();
 }
